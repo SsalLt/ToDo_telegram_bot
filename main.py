@@ -1,12 +1,10 @@
 from aiogram import Bot, Dispatcher
-from dotenv import load_dotenv
 import asyncio
-import os
+from config import TOKEN
 
 
 async def start_polling():
-    load_dotenv()
-    bot = Bot(token=os.getenv('TOKEN'))
+    bot = Bot(token=TOKEN)
     dp = Dispatcher()
     await dp.start_polling(bot)
 
