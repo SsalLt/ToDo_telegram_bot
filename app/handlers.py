@@ -37,7 +37,7 @@ async def task_text_process(message: Message, state: FSMContext):
     logger.debug('task_text_process command')
     await state.update_data(task_text=message.text)
     state_data: dict = await state.get_data()
-    # await add_task_to_bd(task=state_data.get("task_text"))
+    await rq.set_task(tg_id=message.from_user.id, task=state_data.get("task_text"))
     await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
     await state.clear()
 
@@ -46,5 +46,6 @@ async def task_text_process(message: Message, state: FSMContext):
 @router.message(Command('list_tasks'))
 async def list_tasks(message: Message, state: FSMContext):
     user_tg_id = message.from_user.id
+    tasks = await kb.tasks(tg_id=user_tg_id)
     await message.answer(text="Список ваших задач:",
-                         reply_markup=await kb.tasks(tg_id=user_tg_id))
+                         reply_markup=tasks)

@@ -19,7 +19,7 @@ class User(Base):
 class Task(Base):
     __tablename__ = 'tasks'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id'))
+    user: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id'))
     text: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[str] = mapped_column(String)
