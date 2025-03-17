@@ -20,7 +20,7 @@ async def start_command(message: Message, state: FSMContext):
     await rq.set_user(tg_id=message.from_user.id)
     await state.clear()
     await message.answer(
-        f"Привет, {message.from_user.full_name}!\nЭто бот для управления задачами.",
+        text=f"Привет, {message.from_user.full_name}!\nЭто бот для управления задачами.",
         reply_markup=kb.main)
 
 
@@ -28,7 +28,7 @@ async def start_command(message: Message, state: FSMContext):
 @router.message(Command("add"))
 async def add_task(message: Message, state: FSMContext):
     await state.set_state(AddTaskState.task_text)
-    await message.answer("Введите текст новой задачи:", reply_markup=kb.remove)
+    await message.answer(text="Введите текст новой задачи:", reply_markup=kb.remove)
     logger.debug('add_task command')
 
 
@@ -38,5 +38,5 @@ async def task_text_process(message: Message, state: FSMContext):
     await state.update_data(task_text=message.text)
     state_data: dict = await state.get_data()
     # await add_task_to_bd(task=state_data.get("task_text"))
-    await message.reply(f"✅ Задача добавлена!", reply_markup=kb.main)
+    await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
     await state.clear()

@@ -1,5 +1,6 @@
-from sqlalchemy import BigInteger, ForeignKey, String, Boolean
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from datetime import datetime
+from sqlalchemy import BigInteger, ForeignKey, Boolean, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
 engine = create_async_engine(url="sqlite+aiosqlite:///db.sqlite")
@@ -19,9 +20,10 @@ class User(Base):
 class Task(Base):
     __tablename__ = 'tasks'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[BigInteger] = mapped_column(BigInteger, ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id'))
     text: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
 
 async def async_main():
