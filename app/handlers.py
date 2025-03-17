@@ -40,3 +40,11 @@ async def task_text_process(message: Message, state: FSMContext):
     # await add_task_to_bd(task=state_data.get("task_text"))
     await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
     await state.clear()
+
+
+@router.message(F.text == "📋 Список задач")
+@router.message(Command('list_tasks'))
+async def list_tasks(message: Message, state: FSMContext):
+    user_tg_id = message.from_user.id
+    await message.answer(text="Список ваших задач:",
+                         reply_markup=await kb.tasks(tg_id=user_tg_id))

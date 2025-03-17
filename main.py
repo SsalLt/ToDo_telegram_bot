@@ -3,6 +3,7 @@ import asyncio
 from config import TOKEN, logger
 from app.handlers import router
 from app.database.models import async_main
+import logging
 
 
 async def main():
@@ -14,6 +15,7 @@ async def main():
 
 
 if __name__ == '__main__':
+    # logging.basicConfig(level=logging.INFO)
     try:
         logger.info('Bot started.')
         asyncio.run(main())

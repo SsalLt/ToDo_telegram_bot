@@ -1,5 +1,4 @@
-from datetime import datetime
-from sqlalchemy import BigInteger, ForeignKey, Boolean, func
+from sqlalchemy import BigInteger, ForeignKey, Boolean, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
@@ -23,7 +22,7 @@ class Task(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id'))
     text: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now())
+    created_at: Mapped[str] = mapped_column(String)
 
 
 async def async_main():
