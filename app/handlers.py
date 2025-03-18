@@ -24,11 +24,18 @@ async def start_command(message: Message, state: FSMContext):
         reply_markup=kb.main)
 
 
+@router.message(F.text == "Назад ↩")
+async def back_to_main(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text="Вы вернулись в главное меню.", reply_markup=kb.main)
+    logger.debug('back_to_main command')
+
+
 @router.message(F.text == '➕ Добавить задачу')
 @router.message(Command("add"))
 async def add_task(message: Message, state: FSMContext):
     await state.set_state(AddTaskState.task_text)
-    await message.answer(text="Введите текст новой задачи:", reply_markup=kb.remove)
+    await message.answer(text="Введите текст новой задачи:", reply_markup=kb.back_to_main)
     logger.debug('add_task command')
 
 

@@ -12,6 +12,10 @@ main = ReplyKeyboardMarkup(keyboard=[
 
 remove = ReplyKeyboardRemove()
 
+back_to_main = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="Назад ↩")]],
+    resize_keyboard=True
+)
 
 async def tasks(tg_id: int) -> InlineKeyboardMarkup:
     tasks = await rq.get_tasks(tg_id=tg_id)
