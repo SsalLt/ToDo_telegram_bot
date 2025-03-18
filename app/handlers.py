@@ -54,5 +54,9 @@ async def task_text_process(message: Message, state: FSMContext):
 async def list_tasks(message: Message, state: FSMContext):
     user_tg_id = message.from_user.id
     tasks = await kb.tasks(tg_id=user_tg_id)
+    if tasks is None:
+        await message.answer(text="У вас ещё нет ни одной задачи!\n"
+                                  "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.")
+        return
     await message.answer(text="Список ваших задач:",
                          reply_markup=tasks)
