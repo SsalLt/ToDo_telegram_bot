@@ -19,9 +19,10 @@ back_to_main = ReplyKeyboardMarkup(
 )
 
 
-async def create_task_menu_kb(task_id: int) -> InlineKeyboardMarkup:
+async def create_task_menu_kb(task_id: int, is_completed: bool) -> InlineKeyboardMarkup:
+    status_text = '☑ Пометить как "Выполнено"' if not is_completed else '✖ Пометить как "Не выполнено"'
     task_menu = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='☑ Пометить как "Выполнено"', callback_data=f'complete_{task_id}')],
+        [InlineKeyboardButton(text=status_text, callback_data=f'complete_{task_id}')],
         [InlineKeyboardButton(text='✏ Изменить текст', callback_data=f'edit_{task_id}'),
          InlineKeyboardButton(text='🗑 Удалить задачу', callback_data=f'delete_{task_id}')],
         [InlineKeyboardButton(text='Назад ↩', callback_data='back_to_list')]

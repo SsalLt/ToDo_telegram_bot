@@ -30,3 +30,11 @@ async def get_task_by_id(task_id: int):
     async with async_session() as session:
         task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
         return task
+
+
+async def update_task_status(task_id: int, new_status: bool) -> None:
+    async with async_session() as session:
+        task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
+        if task:
+            await session.execute(update(Task).where(Task.id == task_id).values(status=new_status))
+            await session.commit()
