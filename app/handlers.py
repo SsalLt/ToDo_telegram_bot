@@ -58,5 +58,39 @@ async def list_tasks(message: Message, state: FSMContext):
         await message.answer(text="У вас ещё нет ни одной задачи!\n"
                                   "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.")
         return
-    await message.answer(text="Список ваших задач:",
-                         reply_markup=tasks)
+    await message.answer(
+        text="📋 *Список задач:*",
+        reply_markup=tasks,
+        parse_mode="Markdown"
+    )
+
+
+@router.callback_query(F.data.startswith("task_"))
+async def view_the_task(callback: CallbackQuery):
+    await callback.answer()
+    task_id = int(callback.data.split("_")[1])
+    task = await rq.get_task_by_id(task_id=task_id)
+
+    if task is None:
+        await callback.message.answer(text="Ошибка! Задача не найдена.")
+        return
+    task_menu = await kb.create_task_menu_kb(task_id=task_id)
+    await callback.message.edit_text(
+        text=f"📌 *Задача #{task.id}*\n\n"
+             f"📝 *Текст:* {task.text}\n"
+             f"📅 *Создано:* {task.created_at}\n"
+             f"📊 *Статус:* {'Выполнено' if task.status else 'Не выполнено'}",
+        reply_markup=task_menu,
+        parse_mode="Markdown"
+    )
+
+
+@router.callback_query(F.data == 'back_to_list')
+async def back_to_list(callback: CallbackQuery):
+    await callback.answer()
+    tasks = await kb.tasks(tg_id=callback.from_user.id)
+    await callback.message.edit_text(
+        text="📋 *Список задач:*",
+        reply_markup=tasks,
+        parse_mode="Markdown"
+    )
