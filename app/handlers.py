@@ -53,8 +53,9 @@ async def process_add_task_text(message: Message, state: FSMContext):
 async def list_tasks(message: Message, state: FSMContext):
     tasks = await kb.tasks(tg_id=message.from_user.id)
     if tasks is None:
-        await message.answer(text="У вас ещё нет ни одной задачи!\n"
-                                  "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.")
+        await message.answer(text="📋 *Список задач пуст.*\n"
+                                  "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
+                             parse_mode="Markdown")
         return
     await message.answer(
         text="📋 *Список задач:*",
@@ -65,7 +66,6 @@ async def list_tasks(message: Message, state: FSMContext):
 
 @router.callback_query(F.data.startswith("task_"))
 async def view_the_task(callback: CallbackQuery):
-    await callback.answer()
     task_id: int = int(callback.data.split("_")[1])
     task = await rq.get_task_by_id(task_id=task_id)
 
@@ -73,6 +73,7 @@ async def view_the_task(callback: CallbackQuery):
         await callback.message.answer(text="Ошибка! Задача не найдена.")
         return
     task_menu = await kb.create_task_menu_kb(task_id=task_id, is_completed=task.status)
+    await callback.answer()
     await callback.message.edit_text(
         text=f"{"📌" if not task.status else "✅"} | *{task.text}* |\n"
              f"📅 Создано: _{task.created_at}_\n"
@@ -95,11 +96,11 @@ async def back_to_list(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("complete_"))
 async def complete_task(callback: CallbackQuery):
-    await callback.answer()
     task_id: int = int(callback.data.split("_")[1])
     task = await rq.get_task_by_id(task_id=task_id)
     await rq.update_task_status(task_id=task_id, new_status=not task.status)
     tasks = await kb.tasks(tg_id=callback.from_user.id)
+    await callback.answer()
     await callback.message.edit_text(
         text="📋 *Список задач:*",
         reply_markup=tasks,
@@ -112,6 +113,7 @@ async def edit_task(callback: CallbackQuery, state: FSMContext):
     task_id: int = int(callback.data.split("_")[1])
     await state.update_data(task_id=task_id)
     await state.set_state(TaskState.edit_task_text)
+    await callback.answer()
     await callback.message.answer(text="Введите новый текст для задачи:", reply_markup=kb.back_to_main)
 
 
@@ -123,3 +125,53 @@ async def process_edit_task_text(message: Message, state: FSMContext):
     await message.reply(text="✍ Текст задачи обновлён!", reply_markup=kb.main)
     await state.clear()
 
+
+@router.callback_query(F.data.startswith("delete_"))
+async def delete_task(callback: CallbackQuery):
+    task_id: int = int(callback.data.split("_")[1])
+    task = await rq.get_task_by_id(task_id=task_id)
+    if task is None:
+        await callback.message.edit_text(text="Ошибка! Задача не найдена.")
+        return
+    await callback.answer()
+    await callback.message.edit_text(
+        text=f"Действительно удалить задачу | *{task.text}* | ?",
+        reply_markup=await kb.confirm_delete_keyboard(task_id=task_id),
+        parse_mode="Markdown"
+    )
+
+
+@router.callback_query(F.data.startswith("confirm_delete_"))
+async def confirm_delete(callback: CallbackQuery):
+    task_id: int = int(callback.data.split("_")[2])
+    await rq.delete_task(task_id=task_id)
+
+    tasks = await kb.tasks(tg_id=callback.from_user.id)
+    await callback.answer()
+    if tasks is None:
+        await callback.message.edit_text(
+            text="📋 *Список задач пуст.*\n"
+                 "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
+            parse_mode="Markdown")
+        return
+
+    await callback.message.edit_text(
+        text="📋 *Список задач:*",
+        reply_markup=tasks,
+        parse_mode="Markdown"
+    )
+
+
+@router.callback_query(F.data.startswith("cancel_delete_"))
+async def cancel_delete(callback: CallbackQuery):
+    task_id: int = int(callback.data.split("_")[2])
+    task = await rq.get_task_by_id(task_id=task_id)
+    task_menu = await kb.create_task_menu_kb(task_id=task_id, is_completed=task.status)
+    await callback.answer()
+    await callback.message.edit_text(
+        text=f"{"📌" if not task.status else "✅"} | *{task.text}* |\n"
+             f"📅 Создано: _{task.created_at}_\n"
+             f"📊 Статус: _{'Выполнено' if task.status else 'Не выполнено'}_",
+        reply_markup=task_menu,
+        parse_mode="Markdown"
+    )

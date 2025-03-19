@@ -2,6 +2,8 @@ from aiogram.types import (KeyboardButton, ReplyKeyboardMarkup,
                            ReplyKeyboardRemove, InlineKeyboardButton,
                            InlineKeyboardMarkup)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.orm import Mapped
+
 import app.database.requests_db as rq
 from config import logger
 
@@ -19,7 +21,16 @@ back_to_main = ReplyKeyboardMarkup(
 )
 
 
-async def create_task_menu_kb(task_id: int, is_completed: bool) -> InlineKeyboardMarkup:
+async def confirm_delete_keyboard(task_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Да", callback_data=f"confirm_delete_{task_id}"),
+            InlineKeyboardButton(text="❌ Нет", callback_data=f"cancel_delete_{task_id}")
+        ]
+    ])
+
+
+async def create_task_menu_kb(task_id: int, is_completed: bool | Mapped[bool]) -> InlineKeyboardMarkup:
     status_text = '☑ Пометить как "Выполнено"' if not is_completed else '✖ Пометить как "Не выполнено"'
     task_menu = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=status_text, callback_data=f'complete_{task_id}')],

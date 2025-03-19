@@ -46,3 +46,11 @@ async def edit_task_text(task_id: int, new_text: str) -> None:
         if task:
             await session.execute(update(Task).where(Task.id == task_id).values(text=new_text))
             await session.commit()
+
+
+async def delete_task(task_id: int) -> None:
+    async with async_session() as session:
+        task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
+        if task:
+            await session.execute(delete(Task).where(Task.id == task_id))
+            await session.commit()
