@@ -26,7 +26,7 @@ async def set_task(tg_id: int, task: str) -> None:
         await session.commit()
 
 
-async def get_task_by_id(task_id: int):
+async def get_task_by_id(task_id: int) -> Task | None:
     async with async_session() as session:
         task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
         return task
@@ -37,4 +37,12 @@ async def update_task_status(task_id: int, new_status: bool) -> None:
         task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
         if task:
             await session.execute(update(Task).where(Task.id == task_id).values(status=new_status))
+            await session.commit()
+
+
+async def edit_task_text(task_id: int, new_text: str) -> None:
+    async with async_session() as session:
+        task: Task | None = await session.scalar(select(Task).where(Task.id == task_id))
+        if task:
+            await session.execute(update(Task).where(Task.id == task_id).values(text=new_text))
             await session.commit()

@@ -11,8 +11,9 @@ import app.database.requests_db as rq
 router = Router()
 
 
-class AddTaskState(StatesGroup):
-    task_text = State()
+class TaskState(StatesGroup):
+    add_task_text = State()
+    edit_task_text = State()
 
 
 @router.message(Command("start"))
@@ -34,17 +35,15 @@ async def back_to_main(message: Message, state: FSMContext):
 @router.message(F.text == '➕ Добавить задачу')
 @router.message(Command("add"))
 async def add_task(message: Message, state: FSMContext):
-    await state.set_state(AddTaskState.task_text)
+    await state.set_state(TaskState.add_task_text)
     await message.answer(text="Введите текст новой задачи:", reply_markup=kb.back_to_main)
     logger.debug('add_task command')
 
 
-@router.message(AddTaskState.task_text)
-async def task_text_process(message: Message, state: FSMContext):
+@router.message(TaskState.add_task_text, F.text)
+async def process_add_task_text(message: Message, state: FSMContext):
     logger.debug('task_text_process command')
-    await state.update_data(task_text=message.text)
-    state_data: dict = await state.get_data()
-    await rq.set_task(tg_id=message.from_user.id, task=state_data.get("task_text"))
+    await rq.set_task(tg_id=message.from_user.id, task=message.text)
     await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
     await state.clear()
 
@@ -106,3 +105,21 @@ async def complete_task(callback: CallbackQuery):
         reply_markup=tasks,
         parse_mode="Markdown"
     )
+
+
+@router.callback_query(F.data.startswith("edit_"))
+async def edit_task(callback: CallbackQuery, state: FSMContext):
+    task_id: int = int(callback.data.split("_")[1])
+    await state.update_data(task_id=task_id)
+    await state.set_state(TaskState.edit_task_text)
+    await callback.message.answer(text="Введите новый текст для задачи:", reply_markup=kb.back_to_main)
+
+
+@router.message(TaskState.edit_task_text, F.text)
+async def process_edit_task_text(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    task_id = state_data.get("task_id")
+    await rq.edit_task_text(task_id=task_id, new_text=message.text)
+    await message.reply(text="✍ Текст задачи обновлён!", reply_markup=kb.main)
+    await state.clear()
+
