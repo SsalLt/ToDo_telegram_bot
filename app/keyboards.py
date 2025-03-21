@@ -9,7 +9,8 @@ from config import logger
 
 main = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="➕ Добавить задачу")],
-    [KeyboardButton(text="📋 Список задач")]
+    [KeyboardButton(text="📋 Список задач")],
+    [KeyboardButton(text="🚮 Удалить выполненные задачи")]
 ],
     resize_keyboard=True)
 
@@ -19,13 +20,19 @@ back_to_main = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text="Назад ↩")]],
     resize_keyboard=True
 )
+confirm_delete_completed_tasks_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text="👍 Да", callback_data="confirm_delete_completed_tasks"),
+        InlineKeyboardButton(text="👎 Нет", callback_data="cancel_delete_completed_tasks")
+    ]
+])
 
 
-async def confirm_delete_keyboard(task_id: int) -> InlineKeyboardMarkup:
+async def confirm_delete_kd(task_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Да", callback_data=f"confirm_delete_{task_id}"),
-            InlineKeyboardButton(text="❌ Нет", callback_data=f"cancel_delete_{task_id}")
+            InlineKeyboardButton(text="👍 Да", callback_data=f"confirm_delete_task_{task_id}"),
+            InlineKeyboardButton(text="👎 Нет", callback_data=f"cancel_delete_task_{task_id}")
         ]
     ])
 

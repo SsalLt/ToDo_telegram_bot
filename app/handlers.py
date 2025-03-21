@@ -136,14 +136,14 @@ async def delete_task(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(
         text=f"Действительно удалить задачу | *{task.text}* | ?",
-        reply_markup=await kb.confirm_delete_keyboard(task_id=task_id),
+        reply_markup=await kb.confirm_delete_kd(task_id=task_id),
         parse_mode="Markdown"
     )
 
 
-@router.callback_query(F.data.startswith("confirm_delete_"))
+@router.callback_query(F.data.startswith("confirm_delete_task_"))
 async def confirm_delete(callback: CallbackQuery):
-    task_id: int = int(callback.data.split("_")[2])
+    task_id: int = int(callback.data.split("_")[3])
     await rq.delete_task(task_id=task_id)
 
     tasks = await kb.tasks(tg_id=callback.from_user.id)
@@ -162,9 +162,9 @@ async def confirm_delete(callback: CallbackQuery):
     )
 
 
-@router.callback_query(F.data.startswith("cancel_delete_"))
+@router.callback_query(F.data.startswith("cancel_delete_task_"))
 async def cancel_delete(callback: CallbackQuery):
-    task_id: int = int(callback.data.split("_")[2])
+    task_id: int = int(callback.data.split("_")[3])
     task = await rq.get_task_by_id(task_id=task_id)
     task_menu = await kb.create_task_menu_kb(task_id=task_id, is_completed=task.status)
     await callback.answer()
@@ -175,3 +175,23 @@ async def cancel_delete(callback: CallbackQuery):
         reply_markup=task_menu,
         parse_mode="Markdown"
     )
+
+
+@router.message(F.text == "🚮 Удалить выполненные задачи")
+@router.message(Command('delete_completed_tasks'))
+async def delete_completed_tasks(message: Message):
+    await message.answer("Вы уверены, что хотите удалить все выполненные задачи?",
+                         reply_markup=kb.confirm_delete_completed_tasks_kb)
+
+
+@router.callback_query(F.data == "confirm_delete_completed_tasks")
+async def confirm_delete_completed_tasks(callback: CallbackQuery):
+    await rq.delete_all_completed_tasks()
+    await callback.answer()
+    await callback.message.edit_text(text="♻ Выполненные задачи удалены!")
+
+
+@router.callback_query(F.data == "cancel_delete_completed_tasks")
+async def cancel_delete_completed_tasks(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text(text="⛔ Удаление выполненных задач отменено.")

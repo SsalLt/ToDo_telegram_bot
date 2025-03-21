@@ -54,3 +54,9 @@ async def delete_task(task_id: int) -> None:
         if task:
             await session.execute(delete(Task).where(Task.id == task_id))
             await session.commit()
+
+
+async def delete_all_completed_tasks() -> None:
+    async with async_session() as session:
+        await session.execute(delete(Task).where(Task.status == True))
+        await session.commit()
