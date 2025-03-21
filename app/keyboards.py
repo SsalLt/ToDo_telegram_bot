@@ -31,7 +31,7 @@ async def confirm_delete_keyboard(task_id: int) -> InlineKeyboardMarkup:
 
 
 async def create_task_menu_kb(task_id: int, is_completed: bool | Mapped[bool]) -> InlineKeyboardMarkup:
-    status_text = '☑ Пометить как "Выполнено"' if not is_completed else '✖ Пометить как "Не выполнено"'
+    status_text = '🏅 Пометить как "Выполнено"' if not is_completed else '🚫 Пометить как "Не выполнено"'
     task_menu = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=status_text, callback_data=f'complete_{task_id}')],
         [InlineKeyboardButton(text='✏ Изменить текст', callback_data=f'edit_{task_id}'),
