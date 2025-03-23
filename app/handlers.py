@@ -43,6 +43,7 @@ async def add_task(message: Message, state: FSMContext):
 @router.message(TaskState.add_task_text, F.text)
 async def process_add_task_text(message: Message, state: FSMContext):
     logger.debug('task_text_process command')
+    await message.answer(text="⏳ Добавляю задачу...")
     await rq.set_task(tg_id=message.from_user.id, task=message.text)
     await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
     await state.clear()
