@@ -14,6 +14,7 @@ class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    user_sort_preferences: Mapped[str] = mapped_column(String)
 
 
 class Task(Base):

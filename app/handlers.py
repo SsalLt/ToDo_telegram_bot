@@ -49,20 +49,40 @@ async def process_add_task_text(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(F.text == "📋 Список задач")
-@router.message(Command('list_tasks'))
-async def list_tasks(message: Message, state: FSMContext):
-    tasks = await kb.tasks(tg_id=message.from_user.id)
-    if tasks is None:
-        await message.answer(text="📋 *Список задач пуст.*\n"
+async def process_tasks_list(ctx: Message | CallbackQuery) -> None:
+    user_sort_preference = await rq.get_sort_preferences(tg_id=ctx.from_user.id)
+    sort_mode = True if "old" in user_sort_preference else False
+    tasks = await kb.tasks(tg_id=ctx.from_user.id, sort_mode=sort_mode)
+    if isinstance(ctx, Message):
+        if tasks is None:
+            await ctx.answer(text="📋 *Список задач пуст.*\n"
                                   "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
                              parse_mode="Markdown")
-        return
-    await message.answer(
-        text="📋 *Список задач:*",
-        reply_markup=tasks,
-        parse_mode="Markdown"
-    )
+            return
+        await ctx.answer(
+            text="📋 *Список задач:*",
+            reply_markup=tasks,
+            parse_mode="Markdown"
+        )
+    elif isinstance(ctx, CallbackQuery):
+        await ctx.answer()
+        if tasks is None:
+            await ctx.message.edit_text(
+                text="📋 *Список задач пуст.*\n"
+                     "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
+                parse_mode="Markdown")
+            return
+        await ctx.message.edit_text(
+            text="📋 *Список задач:*",
+            reply_markup=tasks,
+            parse_mode="Markdown"
+        )
+
+
+@router.message(F.text == "📋 Список задач")
+@router.message(Command('list_tasks'))
+async def list_tasks(message: Message):
+    await process_tasks_list(ctx=message)
 
 
 @router.callback_query(F.data.startswith("task_"))
@@ -86,13 +106,7 @@ async def view_the_task(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'back_to_list')
 async def back_to_list(callback: CallbackQuery):
-    await callback.answer()
-    tasks = await kb.tasks(tg_id=callback.from_user.id)
-    await callback.message.edit_text(
-        text="📋 *Список задач:*",
-        reply_markup=tasks,
-        parse_mode="Markdown"
-    )
+    await process_tasks_list(ctx=callback)
 
 
 @router.callback_query(F.data.startswith("complete_"))
@@ -100,13 +114,7 @@ async def complete_task(callback: CallbackQuery):
     task_id: int = int(callback.data.split("_")[1])
     task = await rq.get_task_by_id(task_id=task_id)
     await rq.update_task_status(task_id=task_id, new_status=not task.status)
-    tasks = await kb.tasks(tg_id=callback.from_user.id)
-    await callback.answer()
-    await callback.message.edit_text(
-        text="📋 *Список задач:*",
-        reply_markup=tasks,
-        parse_mode="Markdown"
-    )
+    await process_tasks_list(ctx=callback)
 
 
 @router.callback_query(F.data.startswith("edit_"))
@@ -146,21 +154,7 @@ async def delete_task(callback: CallbackQuery):
 async def confirm_delete(callback: CallbackQuery):
     task_id: int = int(callback.data.split("_")[3])
     await rq.delete_task(task_id=task_id)
-
-    tasks = await kb.tasks(tg_id=callback.from_user.id)
-    await callback.answer()
-    if tasks is None:
-        await callback.message.edit_text(
-            text="📋 *Список задач пуст.*\n"
-                 "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
-            parse_mode="Markdown")
-        return
-
-    await callback.message.edit_text(
-        text="📋 *Список задач:*",
-        reply_markup=tasks,
-        parse_mode="Markdown"
-    )
+    await process_tasks_list(ctx=callback)
 
 
 @router.callback_query(F.data.startswith("cancel_delete_task_"))
@@ -196,3 +190,9 @@ async def confirm_delete_completed_tasks(callback: CallbackQuery):
 async def cancel_delete_completed_tasks(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(text="⛔ Удаление выполненных задач отменено.")
+
+
+@router.callback_query(F.data == "switch_sort_mode")
+async def switch_sort_mode(callback: CallbackQuery):
+    await rq.update_sort_preferences(tg_id=callback.from_user.id)
+    await process_tasks_list(ctx=callback)

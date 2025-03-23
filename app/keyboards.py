@@ -20,6 +20,7 @@ back_to_main = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text="Назад ↩")]],
     resize_keyboard=True
 )
+
 confirm_delete_completed_tasks_kb = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="👍 Да", callback_data="confirm_delete_completed_tasks"),
@@ -48,10 +49,15 @@ async def create_task_menu_kb(task_id: int, is_completed: bool | Mapped[bool]) -
     return task_menu
 
 
-async def tasks(tg_id: int) -> InlineKeyboardMarkup | None:
+async def tasks(tg_id: int, sort_mode: bool) -> InlineKeyboardMarkup | None:
     tasks = await rq.get_tasks(tg_id=tg_id)
     keyboard = InlineKeyboardBuilder()
+    keyboard.add(InlineKeyboardButton(
+        text=f"{"🔽 Сортировать (Сначала старые) 🔽" if sort_mode else
+                "🔼 Сортировать (Сначала новые) 🔼"}",
+        callback_data="switch_sort_mode"))
     tasks_lst: list = []
+    tasks = tasks if sort_mode else list(tasks)[::-1]
     for task in tasks:
         task_status = task.status
         text = f'{task.text[:20]}...' if len(task.text) > 20 else task.text
