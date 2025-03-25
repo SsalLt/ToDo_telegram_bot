@@ -1,9 +1,17 @@
+from aiogram.types import BotCommand
+from dotenv import load_dotenv
 import logging
 import os
-from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
+
+my_commands: list[BotCommand] = [
+    BotCommand(command="start", description="▶ Запустить бота"),
+    BotCommand(command="add", description="🆕 Добавить новую задачу"),
+    BotCommand(command="my_tasks", description="📋 Список задач"),
+    BotCommand(command="delete", description="🗑 Удалить выполненные задачи")
+]
 
 
 def _get_logger() -> logging.Logger:
@@ -22,4 +30,4 @@ def _get_logger() -> logging.Logger:
 logger = _get_logger()
 del _get_logger
 
-__all__ = ['TOKEN', 'logger']
+__all__ = ['TOKEN', 'logger', 'my_commands']
