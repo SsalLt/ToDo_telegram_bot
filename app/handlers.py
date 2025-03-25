@@ -80,7 +80,7 @@ async def process_tasks_list(ctx: Message | CallbackQuery) -> None:
 
 
 @router.message(F.text == "📋 Список задач")
-@router.message(Command('list_tasks'))
+@router.message(Command('my_tasks'))
 async def list_tasks(message: Message):
     await process_tasks_list(ctx=message)
 
@@ -173,7 +173,7 @@ async def cancel_delete(callback: CallbackQuery):
 
 
 @router.message(F.text == "🚮 Удалить выполненные задачи")
-@router.message(Command('delete_completed_tasks'))
+@router.message(Command('delete'))
 async def delete_completed_tasks(message: Message):
     await message.answer("Вы уверены, что хотите удалить все выполненные задачи?",
                          reply_markup=kb.confirm_delete_completed_tasks_kb)
