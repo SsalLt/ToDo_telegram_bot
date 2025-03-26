@@ -1,10 +1,9 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
-from aiogram import F, Router, Bot
+from aiogram import F, Router
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-from config import logger
 import app.keyboards as kb
 import app.database.requests_db as rq
 
@@ -18,7 +17,7 @@ class TaskState(StatesGroup):
 
 @router.message(Command("start"))
 async def start_command(message: Message, state: FSMContext):
-    await rq.set_user(tg_id=message.from_user.id)
+    await rq.set_user(tg_id=message.from_user.id, username=message.from_user.username)
     await state.clear()
     await message.answer(
         text=f"Привет, {message.from_user.full_name}!\nЭто бот для управления задачами.",

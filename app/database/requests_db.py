@@ -2,12 +2,14 @@ from datetime import datetime
 from sqlalchemy.orm import Mapped
 from app.database.models import async_session, User, Task
 from sqlalchemy import select, update, delete, ScalarResult
+from config import logger
 
 
-async def set_user(tg_id: int) -> None:
+async def set_user(tg_id: int, username: str) -> None:
     async with async_session() as session:
         user: User | None = await session.scalar(select(User).where(User.tg_id == tg_id))
         if not user:
+            logger.info(f"New User(tg_id={tg_id}, username={username})")
             session.add(User(tg_id=tg_id, user_sort_preferences="sort_first_old_ones"))
             await session.commit()
 
