@@ -178,6 +178,12 @@ async def cancel_delete(callback: CallbackQuery):
 @router.message(F.text == "🚮 Удалить выполненные задачи")
 @router.message(Command('delete'))
 async def delete_completed_tasks(message: Message):
+    tasks: list = list(await rq.get_tasks(tg_id=message.from_user.id))
+    if not tasks:
+        await message.answer(text="📋 *Список задач пуст.*\n"
+                                  "Для добавления задачи воспользуйтесь командой /add или соответствующей кнопкой.",
+                             parse_mode="Markdown")
+        return
     await message.answer("Вы уверены, что хотите удалить все выполненные задачи?",
                          reply_markup=kb.confirm_delete_completed_tasks_kb)
 
