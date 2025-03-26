@@ -5,7 +5,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.orm import Mapped
 
 import app.database.requests_db as rq
-from config import logger
 
 main = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="➕ Добавить задачу")],

@@ -184,7 +184,7 @@ async def delete_completed_tasks(message: Message):
 
 @router.callback_query(F.data == "confirm_delete_completed_tasks")
 async def confirm_delete_completed_tasks(callback: CallbackQuery):
-    await rq.delete_all_completed_tasks()
+    await rq.delete_all_completed_tasks(tg_id=callback.from_user.id)
     await callback.answer()
     await callback.message.edit_text(text="♻ Выполненные задачи удалены!")
 

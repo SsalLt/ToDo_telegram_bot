@@ -57,9 +57,13 @@ async def delete_task(task_id: int) -> None:
             await session.commit()
 
 
-async def delete_all_completed_tasks() -> None:
+async def delete_all_completed_tasks(tg_id: int) -> None:
     async with async_session() as session:
-        await session.execute(delete(Task).where(Task.status == True))
+        user: User | None = await session.scalar(select(User).where(User.tg_id == tg_id))
+        await session.execute(
+            delete(Task).where(Task.status == True,
+                               Task.user == user.id)
+        )
         await session.commit()
 
 
