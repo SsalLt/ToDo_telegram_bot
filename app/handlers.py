@@ -29,7 +29,6 @@ async def start_command(message: Message, state: FSMContext):
 async def back_to_main(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text="Вы вернулись в главное меню.", reply_markup=kb.main)
-    logger.debug('back_to_main command')
 
 
 @router.message(F.text == '➕ Добавить задачу')
@@ -37,12 +36,13 @@ async def back_to_main(message: Message, state: FSMContext):
 async def add_task(message: Message, state: FSMContext):
     await state.set_state(TaskState.add_task_text)
     await message.answer(text="Введите текст новой задачи:", reply_markup=kb.back_to_main)
-    logger.debug('add_task command')
 
 
 @router.message(TaskState.add_task_text, F.text)
 async def process_add_task_text(message: Message, state: FSMContext):
-    logger.debug('task_text_process command')
+    if not message.text:
+        await message.answer(text="⚠ Ошибка! Нельзя добавить пустую задачу.")
+        return
     await message.answer(text="⏳ Добавляю задачу...")
     await rq.set_task(tg_id=message.from_user.id, task=message.text)
     await message.reply(text=f"✅ Задача добавлена!", reply_markup=kb.main)
@@ -91,7 +91,7 @@ async def view_the_task(callback: CallbackQuery):
     task = await rq.get_task_by_id(task_id=task_id)
 
     if task is None:
-        await callback.message.answer(text="Ошибка! Задача не найдена.")
+        await callback.message.answer(text="⚠ Ошибка! Задача не найдена.")
         return
     task_menu = await kb.create_task_menu_kb(task_id=task_id, is_completed=task.status)
     await callback.answer()
@@ -128,6 +128,9 @@ async def edit_task(callback: CallbackQuery, state: FSMContext):
 
 @router.message(TaskState.edit_task_text, F.text)
 async def process_edit_task_text(message: Message, state: FSMContext):
+    if not message.text:
+        await message.answer(text="⚠ Ошибка! Нельзя добавить пустую задачу.")
+        return
     state_data = await state.get_data()
     task_id = state_data.get("task_id")
     await rq.edit_task_text(task_id=task_id, new_text=message.text)
@@ -140,7 +143,7 @@ async def delete_task(callback: CallbackQuery):
     task_id: int = int(callback.data.split("_")[1])
     task = await rq.get_task_by_id(task_id=task_id)
     if task is None:
-        await callback.message.edit_text(text="Ошибка! Задача не найдена.")
+        await callback.message.edit_text(text="⚠ Ошибка! Задача не найдена.")
         return
     await callback.answer()
     await callback.message.edit_text(

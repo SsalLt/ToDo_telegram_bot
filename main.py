@@ -3,11 +3,12 @@ import asyncio
 from config import TOKEN, logger, my_commands
 from app.handlers import router
 from app.database.models import async_main
-import logging
 
 
 async def main():
-    await async_main()  # Initialize database connection
+    if not TOKEN:
+        raise ValueError("You must provide a token before creating a new instance of the bot.")
+    await async_main()
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
     dp.include_router(router=router)
@@ -17,7 +18,6 @@ async def main():
 
 
 if __name__ == '__main__':
-    # logging.basicConfig(level=logging.INFO)
     try:
         logger.info('Bot started.')
         asyncio.run(main())
